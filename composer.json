@@ -13,7 +13,6 @@
             "name": "mmopane"
         }
     ],
-    "minimum-stability": "dev",
     "require": {
         "php": ">=8.0",
         "psr/container": "^2.0"
