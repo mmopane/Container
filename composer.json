@@ -1,0 +1,20 @@
+{
+    "name": "mmopane/container",
+    "description": "A simple PSR-11 dependency injection container",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "MMOPANE\\Container\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "mmopane"
+        }
+    ],
+    "require": {
+        "php": ">=8.0",
+        "psr/container": "^2.0"
+    }
+}
