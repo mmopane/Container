@@ -15,6 +15,7 @@
     ],
     "require": {
         "php": ">=8.0",
-        "psr/container": "^2.0"
+        "psr/container": "^2.0",
+        "mmopane/collection": "^1.0"
     }
 }

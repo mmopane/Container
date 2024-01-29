@@ -2,34 +2,84 @@
 
 namespace MMOPANE\Container;
 
+use MMOPANE\Container\Exception\NotFoundException;
+
 class Definition
 {
-    protected Container     $container;
-    protected string        $concrete;
-    protected array         $parameters     = [];
-    protected array         $properties     = [];
-    protected array         $methods        = [];
-    protected bool          $singleton      = false;
-    protected object|null   $instance       = null;
+    /**
+     * @var Container
+     */
+    protected Container $container;
 
+    /**
+     * @var string|mixed
+     */
+    protected string $concrete;
+
+    /**
+     * @var array
+     */
+    protected array $parameters = [];
+
+    /**
+     * @var array
+     */
+    protected array $properties = [];
+
+    /**
+     * @var array
+     */
+    protected array $methods = [];
+
+    /**
+     * @var bool
+     */
+    protected bool $singleton = false;
+
+    /**
+     * @var object|null
+     */
+    protected object|null $instance = null;
+
+    /**
+     * @param Container $container
+     * @param mixed $concrete
+     */
     public function __construct(Container $container, mixed $concrete)
     {
-        $this->container    = $container;
-        $this->concrete     = $concrete;
+        $this->container = $container;
+        $this->concrete = $concrete;
     }
 
+    /**
+     * Set constructor parameters.
+     * @param mixed ...$parameters Constructor parameters.
+     * @return $this
+     */
     public function setParameters(mixed ...$parameters): self
     {
         $this->parameters = $parameters;
         return $this;
     }
 
+    /**
+     * Set public properties.
+     * @param string $name Property name.
+     * @param mixed $value Property value.
+     * @return $this
+     */
     public function setProperty(string $name, mixed $value): self
     {
         $this->properties[$name] = $value;
         return $this;
     }
 
+    /**
+     * Set call methods.
+     * @param string $name Method name.
+     * @param mixed ...$parameters Method parameters.
+     * @return $this
+     */
     public function callMethod(string $name, mixed ...$parameters): self
     {
         $this->methods[] = [
@@ -39,53 +89,68 @@ class Definition
         return $this;
     }
 
+    /**
+     * Set singleton status.
+     * @param bool $singleton Status.
+     * @return $this
+     */
     public function setSingleton(bool $singleton): self
     {
         $this->singleton = $singleton;
         return $this;
     }
 
+    /**
+     * Get definition instance or value.
+     * @return mixed
+     */
     public function resolve(): mixed
     {
         if($this->singleton)
             return $this->instance ?? $this->instance = $this->makeInstance();
-
         return $this->makeInstance();
     }
 
+    /**
+     * @return mixed
+     */
     protected function makeInstance(): mixed
     {
-        $parameters = $this->parameters;
-
-        foreach ($parameters as $index => $parameter)
-        {
-            if(is_string($parameter) and $this->container->has($parameter))
-                $parameters[$index] = $this->container->get($parameter);
-        }
+        $parameters = [];
+        foreach ($this->parameters as $index => $parameter)
+            $parameters[$index] = $this->makeParameter($parameter);
 
         $instance = new $this->concrete(...$parameters);
 
         foreach ($this->properties as $name => $value)
-        {
-            if(is_string($value) and $this->container->has($value))
-                $instance->{$name} = $this->container->get($value);
-            else
-                $instance->{$name} = $value;
-        }
+            $instance->{$name} = $this->makeParameter($value);
 
         foreach ($this->methods as $method)
         {
-            $parameters = $method['parameters'];
-
-            foreach ($parameters as $index => $parameter)
-            {
-                if(is_string($parameter) and $this->container->has($parameter))
-                    $parameters[$index] = $this->container->get($parameter);
-            }
-
+            $parameters = [];
+            foreach ($method['parameters'] as $index => $parameter)
+                $parameters[$index] = $this->makeParameter($parameter);
             $instance->{$method['name']}(...$parameters);
         }
-
         return $instance;
+    }
+
+    /**
+     * @param mixed $parameter
+     * @return mixed
+     */
+    protected function makeParameter(mixed $parameter): mixed
+    {
+        if(!is_string($parameter))
+            return $parameter;
+
+        try
+        {
+            return $this->container->get($parameter);
+        }
+        catch (NotFoundException)
+        {
+            return $parameter;
+        }
     }
 }
