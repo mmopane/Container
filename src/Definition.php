@@ -106,9 +106,13 @@ class Definition
      */
     public function resolve(): mixed
     {
-        if($this->singleton)
-            return $this->instance ?? $this->instance = $this->makeInstance();
-        return $this->makeInstance();
+        if(is_string($this->concrete) and class_exists($this->concrete))
+        {
+            if($this->singleton)
+                return $this->instance ?? $this->instance = $this->makeInstance();
+            return $this->makeInstance();
+        }
+        return $this->concrete;
     }
 
     /**
