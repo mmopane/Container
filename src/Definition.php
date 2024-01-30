@@ -12,9 +12,9 @@ class Definition
     protected Container $container;
 
     /**
-     * @var string|mixed
+     * @var mixed
      */
-    protected string $concrete;
+    protected mixed $concrete;
 
     /**
      * @var array
